@@ -1,4 +1,4 @@
-# fluxline
+# fluxline [![CircleCI](https://circleci.com/gh/DCSO/fluxline.svg?style=shield)](https://circleci.com/gh/DCSO/fluxline) [![Documentation](https://godoc.org/github.com/DCSO/fluxline?status.svg)](http://godoc.org/github.com/DCSO/fluxline)
 
 Encoder for Golang to prepare sets of metrics in [InfluxDB's Line Protocol](https://docs.influxdata.com/influxdb/v1.4/write_protocols/line_protocol_reference) format. As input, we use structs annotated with the `influx` tag, similar to how `encoding/json` works.
 
