@@ -28,16 +28,17 @@ func escapeSpecialChars(in string) string {
 	return str
 }
 
-func toInfluxRepr(tag string, val interface{}) (string, error) {
+func toInfluxRepr(tag string, val interface{}, nostatictypes bool) (string, error) {
 	switch v := val.(type) {
 	case string:
 		if len(v) > 64000 {
 			return "", fmt.Errorf("%s: string too long (%d characters, max. 64K)", tag, len(v))
 		}
 		return fmt.Sprintf("%q", v), nil
-	case int32, int64, int16, int8, int:
-		return fmt.Sprintf("%di", v), nil
-	case uint32, uint64, uint16, uint8, uint:
+	case int32, int64, int16, int8, int, uint32, uint64, uint16, uint8, uint:
+		if nostatictypes {
+			return fmt.Sprintf("%d", v), nil
+		}
 		return fmt.Sprintf("%di", v), nil
 	case float64, float32:
 		return fmt.Sprintf("%g", v), nil
@@ -51,7 +52,7 @@ func toInfluxRepr(tag string, val interface{}) (string, error) {
 }
 
 func recordFields(val interface{},
-	fieldSet map[string]string) (map[string]string, error) {
+	fieldSet map[string]string, nostatictypes bool) (map[string]string, error) {
 	t := reflect.TypeOf(val)
 	v := reflect.ValueOf(val)
 
@@ -61,7 +62,7 @@ func recordFields(val interface{},
 		if tag == "" {
 			continue
 		}
-		repr, err := toInfluxRepr(tag, v.Field(i).Interface())
+		repr, err := toInfluxRepr(tag, v.Field(i).Interface(), nostatictypes)
 		if err != nil {
 			return nil, err
 		}
@@ -116,15 +117,30 @@ func (a *Encoder) formatLineProtocol(prefix string,
 
 // Encode writes the line protocol representation for a given measurement
 // name, data struct and tag map to the io.Writer specified on encoder creation.
-func (a *Encoder) Encode(prefix string, val interface{},
-	tags map[string]string) error {
+func (a *Encoder) encodeGeneric(prefix string, val interface{},
+	tags map[string]string, nostatictypes bool) error {
 	fieldSet := make(map[string]string)
-	fieldSet, err := recordFields(val, fieldSet)
+	fieldSet, err := recordFields(val, fieldSet, nostatictypes)
 	if err != nil {
 		return err
 	}
 	_, err = a.Writer.Write([]byte(a.formatLineProtocol(prefix, tags, fieldSet)))
 	return err
+}
+
+// Encode writes the line protocol representation for a given measurement
+// name, data struct and tag map to the io.Writer specified on encoder creation.
+func (a *Encoder) Encode(prefix string, val interface{},
+	tags map[string]string) error {
+	return a.encodeGeneric(prefix, val, tags, false)
+}
+
+// EncodeWithoutTypes writes the line protocol representation for a given measurement
+// name, data struct and tag map to the io.Writer specified on encoder creation.
+// In contrast to Encode(), this method never appends type suffixes to values.
+func (a *Encoder) EncodeWithoutTypes(prefix string, val interface{},
+	tags map[string]string) error {
+	return a.encodeGeneric(prefix, val, tags, true)
 }
 
 // EncodeMap writes the line protocol representation for a given measurement
