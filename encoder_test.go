@@ -102,6 +102,22 @@ func TestEncoderTypeFail(t *testing.T) {
 	}
 }
 
+func TestEncoderNoTypes(t *testing.T) {
+	var b bytes.Buffer
+
+	ile := NewEncoder(&b)
+	tags := make(map[string]string)
+	err := ile.EncodeWithoutTypes("mytool", testStruct, tags)
+	if err != nil {
+		t.Fatal(err)
+	}
+	out := b.String()
+
+	if match, _ := regexp.Match(`^mytool,host=[^,]+ testval=1,testvalue=2,testvalue2=-3,testvalue3=\"foobar\\\"baz\",testvaluebool=false,testvalueflt32=3.1415927,testvalueflt64=1.29e-24,testvaluetime=`, []byte(out)); !match {
+		t.Fatalf("unexpected match content: %s", out)
+	}
+}
+
 func TestEncoderStringTooLongFail(t *testing.T) {
 	var b bytes.Buffer
 
