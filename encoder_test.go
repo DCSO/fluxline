@@ -91,6 +91,28 @@ func TestEncoderEncoder(t *testing.T) {
 	}
 }
 
+func TestEncoderEncoderWithHostname(t *testing.T) {
+	var b bytes.Buffer
+
+	ile := NewEncoderWithHostname(&b, "testhost")
+	tags := make(map[string]string)
+	tags["foo"] = "bar"
+	tags["baaz gogo"] = "gu,gu"
+	err := ile.Encode("mytool", testStruct, tags)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	out := b.String()
+	if len(out) == 0 {
+		t.Fatalf("unexpected result length: %d == 0", len(out))
+	}
+
+	if match, _ := regexp.Match(`^mytool,host=testhost,baaz\\ gogo=gu\\,gu,foo=bar testval=1i,testvalue=2i,testvalue2=-3i,testvalue3=\"foobar\\\"baz\",testvaluebool=false,testvalueflt32=3.1415927,testvalueflt64=1.29e-24,testvaluetime=`, []byte(out)); !match {
+		t.Fatalf("unexpected match content: %s", out)
+	}
+}
+
 func TestEncoderTypeFail(t *testing.T) {
 	var b bytes.Buffer
 
