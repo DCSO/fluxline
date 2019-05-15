@@ -161,8 +161,8 @@ func NewEncoder(w io.Writer) *Encoder {
 	return a
 }
 
-// NewEncoder creates a new encoder that writes to the given io.Writer with
-// an overridden hostname
+// NewEncoderWithHostname creates a new encoder that writes to the given
+// io.Writer with an overridden hostname
 func NewEncoderWithHostname(w io.Writer, host string) *Encoder {
 	a := &Encoder{
 		host:   host,
