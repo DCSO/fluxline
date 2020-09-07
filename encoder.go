@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ShowMax/go-fqdn"
+	"github.com/Showmax/go-fqdn"
 )
 
 // Encoder represents a component that encapsulates a target environment for
